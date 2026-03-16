@@ -1,5 +1,13 @@
 # Porous Media Flow PINN GPU
 
+Created by:
+
+**Al Zakaria, S.Pd.**
+
+Supervised by:
+
+**Amar Vijai Nasrulloh, S.Si., M.T., Ph.D.**
+
 Simulasi aliran air pada media berpori dua dimensi menggunakan dua pendekatan yang dijalankan dalam satu notebook:
 
 - Finite Difference Method (FDM) sebagai solusi referensi numerik.
