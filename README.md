@@ -8,104 +8,104 @@ Supervised by:
 
 **Amar Vijai Nasrulloh, S.Si., M.T., Ph.D.**
 
-Simulasi aliran air pada media berpori dua dimensi menggunakan tiga pendekatan yang dijalankan dalam satu notebook:
+This project simulates two-dimensional water flow in porous media using three approaches within a single notebook:
 
-- Finite Difference Method (FDM) sebagai solusi referensi numerik.
-- Neural Network (NN) murni data-driven sebagai surrogate model tanpa constraint fisika.
-- Physics-Informed Neural Network (PINN) berbasis PyTorch sebagai pendekatan pembelajaran mesin yang mematuhi persamaan fisika.
+- Finite Difference Method (FDM) as the numerical reference solution.
+- A purely data-driven Neural Network (NN) as a surrogate model without physics constraints.
+- A Physics-Informed Neural Network (PINN) built with PyTorch as a machine learning approach constrained by the governing physics.
 
-Proyek ini difokuskan pada studi aliran air di tanah rawa atau akuifer dangkal dengan forcing infiltrasi hujan multi-titik selama `6 jam`, domain 2D, serta training model NN dan PINN di GPU jika CUDA tersedia.
+The project focuses on water flow in swamp soil or a shallow aquifer under multi-point rainfall infiltration forcing over `6 hours`, on a 2D domain, with NN and PINN training on GPU when CUDA is available.
 
-## Ringkasan
+## Overview
 
-Notebook utama proyek ini adalah [`porous_media_flow_pinn_gpu.ipynb`](./porous_media_flow_pinn_gpu.ipynb). Di dalamnya, seluruh pipeline simulasi dibangun dari awal:
+The main notebook in this project is [`porous_media_flow_pinn_gpu.ipynb`](./porous_media_flow_pinn_gpu.ipynb). It builds the full simulation pipeline from scratch:
 
-1. konfigurasi environment, reproducibility, dan deteksi GPU,
-2. definisi domain fisik dan parameter hidrologi,
-3. pembangkitan pola hujan spasial-temporal multi-titik,
-4. penyelesaian PDE menggunakan FDM explicit 2D,
-5. pembangunan model Neural Network dan PINN dengan PyTorch,
-6. pembuatan data observasi dummy berbasis hasil FDM pada jam ke-`1`, `2`, dan `3`,
-7. training Neural Network murni data-driven,
-8. training PINN dengan kombinasi loss fisika dan data,
-9. evaluasi prediksi jam ke-`4` s/d `6` terhadap solusi referensi FDM,
-10. visualisasi snapshot dan pembuatan animasi GIF untuk ketiga metode.
+1. environment configuration, reproducibility, and GPU detection,
+2. definition of the physical domain and hydrologic parameters,
+3. generation of a multi-point spatiotemporal rainfall pattern,
+4. PDE solution using explicit 2D FDM,
+5. construction of Neural Network and PINN models with PyTorch,
+6. generation of dummy observation data from FDM results at hours `1`, `2`, and `3`,
+7. training of the purely data-driven Neural Network,
+8. training of the PINN with combined physics and data losses,
+9. evaluation of predictions for hours `4` to `6` against the FDM reference solution,
+10. snapshot visualization and GIF animation generation for all three methods.
 
-Secara praktis, notebook ini dapat dipakai sebagai:
+In practice, this notebook can be used as:
 
-- bahan pembelajaran porous media flow,
-- demonstrasi integrasi solver numerik klasik, NN data-driven, dan PINN,
-- template awal eksperimen groundwater / soil-water flow berbasis data,
-- dasar pengembangan inverse PINN untuk estimasi parameter dari observasi lapangan.
+- learning material for porous media flow,
+- a demonstration of integrating a classical numerical solver, a data-driven NN, and a PINN,
+- an initial template for data-based groundwater / soil-water flow experiments,
+- a basis for developing inverse PINNs for parameter estimation from field observations.
 
-## Fokus Eksperimen Saat Ini
+## Current Experimental Focus
 
-Setup notebook saat ini sengaja dibuat untuk menjawab pertanyaan berikut:
+The current notebook setup is designed to answer the following question:
 
-- jika hanya tersedia data observasi dummy pada `3 jam` pertama,
-- lalu simulasi fisik tetap berjalan sampai `6 jam`,
-- metode mana yang lebih baik memprediksi `3 jam` berikutnya: `NN` atau `PINN`?
+- if only dummy observation data are available during the first `3 hours`,
+- while the physical simulation continues until `6 hours`,
+- which method better predicts the next `3 hours`: `NN` or `PINN`?
 
-Dalam workflow ini:
+In this workflow:
 
-- `FDM` dipakai sebagai referensi numerik,
-- `NN` dilatih hanya dari data observasi dummy dan kondisi awal,
-- `PINN` dilatih dari data observasi dummy ditambah constraint PDE, initial condition, dan boundary condition,
-- evaluasi utama dilakukan pada jam `4`, `5`, dan `6`.
+- `FDM` is used as the numerical reference,
+- `NN` is trained only on dummy observation data and the initial condition,
+- `PINN` is trained on dummy observation data plus PDE, initial-condition, and boundary-condition constraints,
+- the main evaluation is performed at hours `4`, `5`, and `6`.
 
-## Permasalahan yang Dimodelkan
+## Modeled Problem
 
-Model menyelesaikan persamaan difusi 2D sederhana untuk hydraulic head `h(x, y, t)`:
+The model solves a simple 2D diffusion equation for hydraulic head `h(x, y, t)`:
 
 ```math
 S_s \frac{\partial h}{\partial t} - K \left(\frac{\partial^2 h}{\partial x^2} + \frac{\partial^2 h}{\partial y^2}\right) - R(x,y,t) = 0
 ```
 
-dengan:
+with:
 
 - `h` = hydraulic head,
 - `S_s` = specific storage,
 - `K` = hydraulic conductivity,
-- `R(x,y,t)` = source term infiltrasi hujan.
+- `R(x,y,t)` = rainfall infiltration source term.
 
-Dalam implementasi FDM di notebook, bentuk yang dipakai ekuivalen dengan:
+In the notebook's FDM implementation, the equivalent form is:
 
 ```math
 \frac{\partial h}{\partial t} = D \left(\frac{\partial^2 h}{\partial x^2} + \frac{\partial^2 h}{\partial y^2}\right) + \frac{R}{S_s}
 ```
 
-dengan `D = K / S_s`.
+with `D = K / S_s`.
 
-## Parameter Simulasi Saat Ini
+## Current Simulation Parameters
 
-Parameter default yang tertanam di notebook:
+Default parameters embedded in the notebook:
 
-| Parameter | Nilai | Keterangan |
+| Parameter | Value | Description |
 | --- | --- | --- |
-| Domain | `50 m x 50 m` | Area simulasi 2D |
-| Durasi simulasi | `6 jam` | Kejadian hujan jangka pendek |
-| Grid spasial | `51 x 51` | Resolusi `1 m` per arah |
-| Head awal | `1.0 m` | Kondisi awal seragam |
-| Head batas | `1.0 m` | Dirichlet boundary condition di semua sisi |
-| `K_day` | `0.8 m/hari` | Konduktivitas hidrolik awal |
-| `K` | `0.03333 m/jam` | Hasil konversi dari `K_day` |
+| Domain | `50 m x 50 m` | 2D simulation area |
+| Simulation duration | `6 hours` | Short rainfall event |
+| Spatial grid | `51 x 51` | `1 m` resolution in each direction |
+| Initial head | `1.0 m` | Uniform initial condition |
+| Boundary head | `1.0 m` | Dirichlet boundary condition on all sides |
+| `K_day` | `0.8 m/day` | Base hydraulic conductivity |
+| `K` | `0.03333 m/hour` | Converted from `K_day` |
 | `S_s` | `0.15` | Specific storage |
-| Resolusi waktu target | `0.10 jam` | Disesuaikan lagi oleh syarat stabilitas |
-| Titik hujan | `18 titik acak` | Forcing infiltrasi multi-sumber |
+| Target time resolution | `0.10 hour` | Further adjusted by the stability condition |
+| Rainfall points | `18 random points` | Multi-source infiltration forcing |
 
-Notebook juga menghitung `dt` berdasarkan syarat stabilitas skema explicit 2D:
+The notebook also computes `dt` based on the explicit 2D stability condition:
 
 ```text
 rx + ry <= 0.5
 ```
 
-sehingga simulasi FDM tetap berada pada rentang yang aman.
+so the FDM simulation remains within a safe numerical range.
 
-## Isi Notebook Secara Detail
+## Notebook Contents in Detail
 
-### 1. Import library dan konfigurasi GPU
+### 1. Library imports and GPU configuration
 
-Notebook memuat library utama berikut:
+The notebook loads the following main libraries:
 
 - `numpy`
 - `matplotlib`
@@ -113,143 +113,143 @@ Notebook memuat library utama berikut:
 - `psutil`
 - `imageio`
 
-Pada tahap ini juga dilakukan:
+At this stage it also performs:
 
-- pengaturan seed untuk hasil yang reproducible,
-- aktivasi `torch.set_float32_matmul_precision("high")`,
-- pemilihan device `cuda` atau `cpu`,
-- penampilan informasi RAM dan VRAM untuk membantu pemantauan resource.
+- seed setup for reproducible results,
+- activation of `torch.set_float32_matmul_precision("high")`,
+- device selection between `cuda` and `cpu`,
+- display of RAM and VRAM information to help monitor resources.
 
-### 2. Definisi domain fisik dan parameter hidrologi
+### 2. Physical domain and hydrologic parameters
 
-Bagian ini menetapkan:
+This section defines:
 
-- ukuran domain `Lx`, `Ly`,
-- jumlah grid `Nx`, `Ny`,
-- durasi simulasi `T_end`,
-- parameter `K`, `S_s`, dan `D`,
-- grid koordinat `X`, `Y`,
-- array waktu `t_arr`.
+- domain size `Lx`, `Ly`,
+- grid counts `Nx`, `Ny`,
+- simulation duration `T_end`,
+- parameters `K`, `S_s`, and `D`,
+- coordinate grids `X`, `Y`,
+- time array `t_arr`.
 
-Karena notebook memakai solver FDM explicit, nilai `dt` dihitung dari batas stabilitas numerik, bukan hanya dari target resolusi waktu.
+Because the notebook uses an explicit FDM solver, `dt` is computed from the numerical stability limit rather than only from the target time resolution.
 
-### 3. Forcing hujan multi-titik
+### 3. Multi-point rainfall forcing
 
-Salah satu komponen penting proyek ini adalah source term infiltrasi hujan yang tidak seragam. Hujan dimodelkan sebagai gabungan beberapa sel hujan acak dengan:
+One key component of this project is the spatially nonuniform rainfall infiltration source term. Rainfall is modeled as a combination of several random rain cells with:
 
-- pusat hujan acak di domain,
-- lebar sebaran spasial (`sigma`) yang berbeda,
-- intensitas tiap sel hujan yang berbeda,
-- profil temporal piecewise-linear yang berubah terhadap waktu.
+- random rain centers within the domain,
+- different spatial spread widths (`sigma`),
+- different cell intensities,
+- a time-varying piecewise-linear temporal profile.
 
-Implementasi tersedia dalam dua versi:
+The implementation is available in two versions:
 
-- `rainfall_source_np(...)` untuk solver FDM,
-- `rainfall_source_torch(...)` untuk residual PINN.
+- `rainfall_source_np(...)` for the FDM solver,
+- `rainfall_source_torch(...)` for the PINN residual.
 
-Dengan desain ini, forcing hujan bersifat:
+With this design, the rainfall forcing is:
 
-- heterogen secara spasial,
-- berubah terhadap waktu,
-- konsisten antara solver numerik dan model PINN.
+- spatially heterogeneous,
+- time-varying,
+- consistent between the numerical solver and the PINN model.
 
-### 4. Kondisi awal dan kondisi batas
+### 4. Initial and boundary conditions
 
-Kondisi awal:
+Initial condition:
 
-- hydraulic head seragam `1.0 m` di seluruh domain.
+- uniform hydraulic head `1.0 m` across the entire domain.
 
-Kondisi batas:
+Boundary condition:
 
-- Dirichlet boundary condition konstan `1.0 m` di keempat sisi domain.
+- constant Dirichlet boundary condition `1.0 m` on all four sides of the domain.
 
-Model saat ini sengaja dibuat sederhana agar fokus eksperimen ada pada pengaruh source term hujan dan pembandingan FDM vs PINN.
+The current model is intentionally kept simple so the experiment remains focused on the influence of rainfall forcing and the FDM vs PINN comparison.
 
-### 5. Solver FDM
+### 5. FDM solver
 
-FDM dipakai sebagai solusi referensi. Notebook:
+FDM is used as the reference solution. The notebook:
 
-- membangun tensor solusi `h[t, x, y]`,
-- menghitung indikator stabilitas `rx` dan `ry`,
-- melakukan update explicit pada node interior,
-- menerapkan boundary Dirichlet di tiap time step.
+- builds the solution tensor `h[t, x, y]`,
+- computes the stability indicators `rx` and `ry`,
+- performs explicit updates at interior nodes,
+- applies Dirichlet boundaries at each time step.
 
-Kelebihan pendekatan ini di proyek:
+Advantages of this approach in the project:
 
-- mudah diverifikasi,
-- langsung selaras dengan PDE yang sama,
-- dapat dipakai untuk menghasilkan data pseudo-observasi bagi PINN.
+- easy to verify,
+- directly aligned with the same PDE,
+- usable for generating pseudo-observations for the PINN.
 
-### 6. Arsitektur Neural Network dan PINN
+### 6. Neural Network and PINN architecture
 
-Model `Neural Network` dan `PINN` dibangun dari backbone `MLP` berbasis `torch.nn.Module` dengan karakteristik:
+The `Neural Network` and `PINN` models are built from an `MLP` backbone based on `torch.nn.Module` with these characteristics:
 
-- input `3` dimensi: `x`, `y`, `t`,
-- hidden size default `128` untuk `NN` dan `96` untuk `PINN`,
-- beberapa hidden layer fully-connected dengan aktivasi `Tanh`,
-- output `1` dimensi: prediksi `h`.
+- `3` input dimensions: `x`, `y`, `t`,
+- default hidden size `128` for `NN` and `96` for `PINN`,
+- multiple fully connected hidden layers with `Tanh` activation,
+- `1` output dimension: predicted `h`.
 
-Input dinormalisasi terhadap `Lx`, `Ly`, dan `T_end` agar training lebih stabil.
+Inputs are normalized with respect to `Lx`, `Ly`, and `T_end` for more stable training.
 
-Perbedaannya:
+The difference is:
 
-- `Neural Network` dipakai sebagai model supervised murni tanpa residual PDE,
-- `PINN` memakai residual fisika sebagai regularisasi tambahan.
+- `Neural Network` is used as a purely supervised model without PDE residuals,
+- `PINN` uses the physics residual as additional regularization.
 
-Residual PDE pada PINN dihitung menggunakan autograd PyTorch untuk memperoleh:
+The PINN PDE residual is computed using PyTorch autograd to obtain:
 
-- turunan pertama terhadap `x`, `y`, `t`,
-- turunan kedua terhadap `x` dan `y`,
-- residual fisika yang menjadi komponen utama loss.
+- first derivatives with respect to `x`, `y`, `t`,
+- second derivatives with respect to `x` and `y`,
+- the physics residual used as a main loss component.
 
-### 7. Sampling data training
+### 7. Training data sampling
 
-Training PINN memakai tiga kelompok titik:
+PINN training uses three groups of points:
 
-- titik interior domain untuk loss PDE,
-- titik waktu awal untuk initial condition,
-- titik di seluruh sisi domain untuk boundary condition.
+- interior-domain points for the PDE loss,
+- initial-time points for the initial condition,
+- points on all domain sides for the boundary condition.
 
-Selain itu, notebook membangkitkan data observasi dummy dari hasil FDM:
+In addition, the notebook generates dummy observation data from the FDM results:
 
-- `12` sensor spasial,
-- observasi pada jam ke-`1`, `2`, dan `3`,
-- bias kecil per jam,
-- noise Gaussian kecil.
+- `12` spatial sensors,
+- observations at hours `1`, `2`, and `3`,
+- a small bias per hour,
+- small Gaussian noise.
 
-Data dummy ini dipakai oleh kedua model pembelajaran:
+These dummy data are used by both learning models:
 
-- `NN` memakai data dummy tersebut sebagai data training utama,
-- `PINN` memakai data yang sama sebagai komponen loss data,
-- prediksi kemudian diekstrapolasi ke jam `4` s/d `6`.
+- `NN` uses them as the main training data,
+- `PINN` uses the same data as part of the data loss,
+- predictions are then extrapolated to hours `4` to `6`.
 
-### 8. Training Neural Network dan PINN
+### 8. Neural Network and PINN training
 
-Training dilakukan dalam dua jalur:
+Training is performed in two branches:
 
 1. `Neural Network`
 2. `PINN`
 
-Keduanya menggunakan dua tahap optimasi:
+Both use a two-stage optimization process:
 
-1. `Adam` untuk optimasi awal,
-2. `LBFGS` untuk refinement akhir.
+1. `Adam` for initial optimization,
+2. `LBFGS` for final refinement.
 
-Untuk `Neural Network`, loss total merupakan kombinasi dari:
+For the `Neural Network`, the total loss combines:
 
-- loss initial condition,
-- loss data observasi.
+- initial-condition loss,
+- observation-data loss.
 
-Untuk `PINN`, loss total merupakan kombinasi dari:
+For the `PINN`, the total loss combines:
 
-- loss residual PDE,
-- loss initial condition,
-- loss boundary condition,
-- loss data observasi.
+- PDE residual loss,
+- initial-condition loss,
+- boundary-condition loss,
+- observation-data loss.
 
-Konfigurasi default penting yang dipakai notebook:
+Important default configuration used in the notebook:
 
-| Komponen | Nilai |
+| Component | Value |
 | --- | --- |
 | `NN epochs_adam` | `5000` |
 | `NN epochs_lbfgs` | `250` |
@@ -264,49 +264,49 @@ Konfigurasi default penting yang dipakai notebook:
 | `w_bnd` | `25.0` |
 | `w_data` | `30.0` |
 
-Notebook juga menyimpan `history` loss untuk divisualisasikan setelah training pada kedua model.
+The notebook also stores loss histories for visualization after training for both models.
 
-### 9. Evaluasi hasil
+### 9. Result evaluation
 
-Setelah training, `NN` dan `PINN` dievaluasi pada grid penuh untuk jam `4`, `5`, dan `6`, lalu dibandingkan dengan solusi FDM. Notebook menampilkan:
+After training, `NN` and `PINN` are evaluated on the full grid at hours `4`, `5`, and `6`, then compared with the FDM solution. The notebook displays:
 
-- kontur head referensi FDM,
-- kontur head hasil Neural Network,
-- kontur head hasil PINN,
-- peta galat absolut `|NN - FDM|`,
-- peta galat absolut `|PINN - FDM|`,
-- metrik `RMSE`, `MAE`, dan `max absolute error`,
-- ringkasan model mana yang lebih baik untuk horizon prediksi `3 jam` berikutnya.
+- FDM reference head contours,
+- Neural Network head contours,
+- PINN head contours,
+- absolute error map `|NN - FDM|`,
+- absolute error map `|PINN - FDM|`,
+- `RMSE`, `MAE`, and `max absolute error` metrics,
+- a summary of which model performs better over the next `3-hour` prediction horizon.
 
-Bagian ini penting untuk menilai seberapa baik model data-driven dan physics-informed memprediksi kondisi setelah rentang data observasi berakhir.
+This section is important for assessing how well the data-driven and physics-informed models predict conditions after the observation window ends.
 
-### 10. Visualisasi dan animasi
+### 10. Visualization and animation
 
-Notebook menyediakan utilitas visualisasi untuk:
+The notebook provides visualization utilities for:
 
-- plot field 2D,
-- plot loss history,
-- overlay titik hujan,
-- overlay titik sensor dummy.
+- 2D field plots,
+- loss-history plots,
+- rainfall-point overlays,
+- dummy-sensor overlays.
 
-Selain itu, notebook membuat:
+In addition, the notebook creates:
 
-- frame PNG untuk hasil FDM,
-- frame PNG untuk hasil Neural Network,
-- frame PNG untuk hasil PINN,
+- PNG frames for FDM results,
+- PNG frames for Neural Network results,
+- PNG frames for PINN results,
 - `fdm_animation.gif`,
 - `nn_animation.gif`,
 - `pinn_animation.gif`.
 
-Jika dijalankan penuh, notebook juga akan membuat direktori output:
+When executed fully, the notebook also creates these output directories:
 
 - `frames_fdm/`
 - `frames_nn/`
 - `frames_pinn/`
 
-## Struktur Repository
+## Repository Structure
 
-Saat ini isi repository sangat ringkas:
+The current repository contents are compact:
 
 ```text
 .
@@ -315,7 +315,7 @@ Saat ini isi repository sangat ringkas:
 `-- LICENSE
 ```
 
-Setelah notebook dijalankan penuh, repository juga dapat berisi output tambahan seperti:
+After running the notebook completely, the repository may also contain additional outputs such as:
 
 - `frames_fdm/`
 - `frames_nn/`
@@ -324,99 +324,99 @@ Setelah notebook dijalankan penuh, repository juga dapat berisi output tambahan 
 - `nn_animation.gif`
 - `pinn_animation.gif`
 
-## Cara Menjalankan
+## How to Run
 
-### 1. Siapkan environment Python
+### 1. Prepare the Python environment
 
-Disarankan Python `3.10+`.
+Python `3.10+` is recommended.
 
-Install dependensi:
+Install dependencies:
 
 ```bash
 pip install numpy matplotlib torch psutil imageio notebook jupyter
 ```
 
-Jika ingin memakai GPU, install PyTorch yang sesuai dengan versi CUDA di sistem Anda dari dokumentasi resmi PyTorch.
+If you want GPU support, install the PyTorch build that matches your CUDA version from the official PyTorch documentation.
 
-### 2. Jalankan Jupyter Notebook
+### 2. Start Jupyter Notebook
 
 ```bash
 jupyter notebook
 ```
 
-lalu buka file:
+Then open:
 
 ```text
 porous_media_flow_pinn_gpu.ipynb
 ```
 
-### 3. Eksekusi sel secara berurutan
+### 3. Execute cells in order
 
-Urutan yang disarankan:
+Recommended order:
 
-1. import dan konfigurasi device,
-2. parameter domain,
-3. hujan, kondisi awal, dan batas,
-4. solver FDM,
-5. model Neural Network dan PINN,
-6. sampling data,
-7. training Neural Network,
-8. training PINN,
-9. evaluasi prediksi jam 4-6,
-10. animasi.
+1. imports and device configuration,
+2. domain parameters,
+3. rainfall, initial condition, and boundary condition,
+4. FDM solver,
+5. Neural Network and PINN models,
+6. data sampling,
+7. Neural Network training,
+8. PINN training,
+9. prediction evaluation for hours 4-6,
+10. animation generation.
 
-Menjalankan sel secara berurutan penting karena banyak variabel global notebook saling bergantung.
+Running cells in sequence is important because many notebook global variables depend on each other.
 
-## Output yang Dihasilkan
+## Generated Outputs
 
-Jika notebook dijalankan penuh, Anda akan memperoleh:
+If the notebook is run completely, you will obtain:
 
-- informasi device, RAM, dan VRAM,
-- snapshot distribusi infiltrasi hujan,
-- snapshot hydraulic head hasil FDM,
-- kurva training loss Neural Network,
-- kurva training loss PINN,
-- snapshot prediksi Neural Network,
-- snapshot prediksi PINN,
-- peta error `NN` terhadap FDM,
-- peta error `PINN` terhadap FDM,
-- GIF animasi evolusi FDM,
-- GIF animasi evolusi Neural Network,
-- GIF animasi evolusi PINN.
+- device, RAM, and VRAM information,
+- rainfall infiltration distribution snapshots,
+- FDM hydraulic head snapshots,
+- Neural Network training-loss curves,
+- PINN training-loss curves,
+- Neural Network prediction snapshots,
+- PINN prediction snapshots,
+- `NN` error maps relative to FDM,
+- `PINN` error maps relative to FDM,
+- GIF animations of FDM evolution,
+- GIF animations of Neural Network evolution,
+- GIF animations of PINN evolution.
 
-## Kelebihan Proyek Ini
+## Project Strengths
 
-- Menggabungkan metode numerik klasik, model data-driven murni, dan PINN dalam satu workflow.
-- Forcing hujan dibuat cukup realistis karena multi-titik dan berubah terhadap waktu.
-- Sudah siap memanfaatkan GPU untuk training.
-- Menyediakan pseudo-observasi untuk simulasi data-driven.
-- Memungkinkan pembandingan langsung antara `NN` dan `PINN` untuk prediksi setelah jendela observasi berakhir.
-- Visualisasi cukup lengkap untuk analisis kualitatif dan kuantitatif.
+- Combines a classical numerical method, a purely data-driven model, and a PINN in one workflow.
+- Rainfall forcing is reasonably realistic because it is multi-point and time-varying.
+- Already prepared to leverage GPU for training.
+- Provides pseudo-observations for data-driven simulation.
+- Enables direct comparison between `NN` and `PINN` for prediction after the observation window ends.
+- Provides fairly complete visualization for qualitative and quantitative analysis.
 
-## Batasan Saat Ini
+## Current Limitations
 
-- Repository masih berupa satu notebook monolitik, belum dipisah menjadi modul Python.
-- Data observasi yang dipakai untuk training masih dummy dan hanya mencakup jam `1-3`, bukan data lapangan nyata.
-- Parameter tanah masih homogen dan isotropik.
-- Boundary condition masih seragam di semua sisi.
-- Model fisik masih difusi sederhana, belum memasukkan proses hidrologi yang lebih kompleks.
-- Evaluasi prediksi `jam 4-6` saat ini masih memakai FDM sebagai ground truth internal, belum benchmark terhadap observasi nyata.
+- The repository is still a single monolithic notebook and has not yet been split into Python modules.
+- The observation data used for training are still dummy data and only cover hours `1-3`, not real field measurements.
+- Soil parameters are still homogeneous and isotropic.
+- Boundary conditions are still uniform on all sides.
+- The physical model is still a simple diffusion model and does not yet include more complex hydrologic processes.
+- Prediction evaluation for hours `4-6` still uses FDM as the internal ground truth rather than benchmarking against real observations.
 
-## Arah Pengembangan
+## Future Directions
 
-Pengembangan lanjutan yang sudah tersirat dari notebook:
+Further development already implied by the notebook includes:
 
-- permeabilitas heterogen `K = K(x, y)`,
-- anisotropi `Kx != Ky`,
-- boundary sungai atau kanal,
-- evapotranspirasi,
-- data curah hujan riil,
-- penggantian observasi dummy dengan data piezometer/sumur pantau,
-- inverse PINN untuk estimasi parameter dari data observasi.
+- heterogeneous permeability `K = K(x, y)`,
+- anisotropy `Kx != Ky`,
+- river or canal boundaries,
+- evapotranspiration,
+- real rainfall data,
+- replacement of dummy observations with piezometer / monitoring-well data,
+- inverse PINNs for parameter estimation from observational data.
 
-## Saran Pengembangan Repository
+## Suggested Repository Refactor
 
-Jika proyek ini ingin dikembangkan lebih jauh, struktur berikut akan lebih mudah dipelihara:
+If this project is developed further, the following structure will be easier to maintain:
 
 ```text
 .
@@ -432,8 +432,8 @@ Jika proyek ini ingin dikembangkan lebih jauh, struktur berikut akan lebih mudah
 `-- LICENSE
 ```
 
-Dengan pemisahan tersebut, eksperimen akan lebih mudah diuji, didokumentasikan, dan direproduksi.
+With this separation, experiments will be easier to test, document, and reproduce.
 
-## Lisensi
+## License
 
-Proyek ini menggunakan lisensi [MIT](./LICENSE).
+This project uses the [MIT](./LICENSE) license.
