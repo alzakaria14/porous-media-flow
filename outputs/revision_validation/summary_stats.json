@@ -1,0 +1,22 @@
+{
+  "mae_paired_t_pvalue": 1.1982167772245913e-08,
+  "mae_paired_t_stat": 17.911283943091043,
+  "mae_reduction_percent_mean": 41.62600767689711,
+  "mae_reduction_percent_std": 5.057684564316971,
+  "mae_wilcoxon_pvalue": 0.0009765625,
+  "mae_wilcoxon_stat": 55.0,
+  "nn_mae_mean": 0.02757062530103361,
+  "nn_mae_std": 0.0016817079947348986,
+  "nn_rmse_mean": 0.03164680927947273,
+  "nn_rmse_std": 0.0020661975768548066,
+  "pinn_mae_mean": 0.016019775197175172,
+  "pinn_mae_std": 0.0004590835751231187,
+  "pinn_rmse_mean": 0.02248914347392834,
+  "pinn_rmse_std": 0.0005826391274152621,
+  "rmse_paired_t_pvalue": 5.265223364887422e-07,
+  "rmse_paired_t_stat": 11.566127231375486,
+  "rmse_reduction_percent_mean": 28.587592931055713,
+  "rmse_reduction_percent_std": 6.12728213430038,
+  "rmse_wilcoxon_pvalue": 0.0009765625,
+  "rmse_wilcoxon_stat": 55.0
+}

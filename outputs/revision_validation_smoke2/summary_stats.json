@@ -1,0 +1,22 @@
+{
+  "mae_paired_t_pvalue": NaN,
+  "mae_paired_t_stat": NaN,
+  "mae_reduction_percent_mean": 47.9692518380977,
+  "mae_reduction_percent_std": NaN,
+  "mae_wilcoxon_pvalue": 0.5,
+  "mae_wilcoxon_stat": 1.0,
+  "nn_mae_mean": 0.0303320353221424,
+  "nn_mae_std": NaN,
+  "nn_rmse_mean": 0.033852403585130586,
+  "nn_rmse_std": NaN,
+  "pinn_mae_mean": 0.015781984910843164,
+  "pinn_mae_std": NaN,
+  "pinn_rmse_mean": 0.022722979552431497,
+  "pinn_rmse_std": NaN,
+  "rmse_paired_t_pvalue": NaN,
+  "rmse_paired_t_stat": NaN,
+  "rmse_reduction_percent_mean": 32.87631852997169,
+  "rmse_reduction_percent_std": NaN,
+  "rmse_wilcoxon_pvalue": 0.5,
+  "rmse_wilcoxon_stat": 1.0
+}

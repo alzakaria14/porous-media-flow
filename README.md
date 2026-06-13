@@ -367,6 +367,29 @@ Recommended order:
 
 Running cells in sequence is important because many notebook global variables depend on each other.
 
+### 4. Run the revised multi-seed validation
+
+For the journal revision, the repeated NN-vs-PINN validation is provided as a
+standalone Python script so the numerical results can be reproduced without
+manually stepping through the notebook:
+
+```bash
+python run_multiseed_validation.py --runs 10 --first-seed 42 --out-dir outputs/revision_validation --nn-adam 1200 --nn-lbfgs 60 --pinn-adam 1800 --pinn-lbfgs 60 --n-int 1000 --n-ini 600 --n-bnd 600
+```
+
+The script writes:
+
+- `outputs/revision_validation/multiseed_metrics.csv`
+- `outputs/revision_validation/summary_stats.json`
+- `outputs/revision_validation/run_manifest.json`
+- `outputs/revision_validation/validation_summary.md`
+- `outputs/revision_validation/rmse_mean_sd.png`
+- `outputs/revision_validation/paired_rmse_by_seed.png`
+- `outputs/revision_validation/mae_mean_sd.png`
+
+This script is the reproducibility source for the revised manuscript tables,
+statistical tests, and computational-cost comparison.
+
 ## Generated Outputs
 
 If the notebook is run completely, you will obtain:

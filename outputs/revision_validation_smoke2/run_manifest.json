@@ -1,0 +1,54 @@
+{
+  "config": {
+    "first_seed": 42,
+    "initial_stride": 2,
+    "lr_nn": 0.001,
+    "lr_pinn": 0.0008,
+    "n_bnd": 300,
+    "n_ini": 300,
+    "n_int": 500,
+    "nn_adam": 300,
+    "nn_hidden": 128,
+    "nn_layers": 4,
+    "nn_lbfgs": 20,
+    "observation_noise_std_m": 0.003,
+    "pinn_adam": 400,
+    "pinn_hidden": 96,
+    "pinn_layers": 5,
+    "pinn_lbfgs": 20,
+    "runs": 1,
+    "w_bnd": 25.0,
+    "w_data": 30.0,
+    "w_ini": 25.0,
+    "w_nn_data": 35.0,
+    "w_nn_ini": 15.0,
+    "w_pde": 1.0
+  },
+  "domain": {
+    "D_m2_per_h": 0.22222222222222224,
+    "K_day_m_per_day": 0.8,
+    "K_m_per_h": 0.03333333333333333,
+    "Lx_m": 50.0,
+    "Ly_m": 50.0,
+    "Nt": 60,
+    "Nx": 51,
+    "Ny": 51,
+    "Ss": 0.15,
+    "T_end_h": 6.0,
+    "dt_h": 0.1,
+    "rx_plus_ry": 0.04444444444444445
+  },
+  "files": {
+    "script_sha256": "7150e9419191784be98834efe0abb93d0e18e192f7d5ba7a201069886867238c"
+  },
+  "software": {
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "device": "NVIDIA GeForce RTX 3050",
+    "numpy": "2.2.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.2",
+    "scipy": "see scipy package",
+    "torch": "2.10.0+cu128"
+  }
+}
