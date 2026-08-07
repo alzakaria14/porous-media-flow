@@ -14,6 +14,6 @@ FDM grid: 51 x 51, Nt=60, dt=0.100000 h, rx+ry=0.044444
 
 ## Timing
 
-Mean NN training time: 4.49 s
-Mean PINN training time: 53.22 s
-Mean FDM solve time: 0.0242 s
+Mean NN training time: 4.54 s
+Mean PINN training time: 53.48 s
+Mean FDM solve time: 0.0314 s

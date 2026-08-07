@@ -88,7 +88,7 @@ RAIN_TIME_MULTIPLIERS = np.array(
 @dataclass
 class RunConfig:
     runs: int = 10
-    first_seed: int = 1001
+    first_seed: int = 42
     nn_adam: int = 1200
     nn_lbfgs: int = 60
     pinn_adam: int = 1800
@@ -626,11 +626,38 @@ def write_summary_markdown(path: Path, cfg: RunConfig, stats_out: dict[str, floa
 
 
 def plot_validation(out_dir: Path, rows: list[dict[str, float]]) -> None:
+    """Create publication-ready validation figures and their source data."""
     seeds = [int(r["seed"]) for r in rows]
     nn_rmse = np.array([r["nn_rmse_mean"] for r in rows], dtype=np.float64)
     pinn_rmse = np.array([r["pinn_rmse_mean"] for r in rows], dtype=np.float64)
     nn_mae = np.array([r["nn_mae_mean"] for r in rows], dtype=np.float64)
     pinn_mae = np.array([r["pinn_mae_mean"] for r in rows], dtype=np.float64)
+
+    # Save the exact seed-level data underlying paired_rmse_by_seed.png.
+    paired_rows: list[dict[str, float]] = []
+    for i, seed in enumerate(seeds):
+        reduction = (nn_rmse[i] - pinn_rmse[i]) / nn_rmse[i] * 100.0
+        paired_rows.append(
+            {
+                "seed": float(seed),
+                "nn_rmse_mean_4_6h_m": float(nn_rmse[i]),
+                "pinn_rmse_mean_4_6h_m": float(pinn_rmse[i]),
+                "rmse_reduction_percent": float(reduction),
+            }
+        )
+    write_csv(out_dir / "paired_rmse_by_seed_data.csv", paired_rows)
+
+    print("\nPaired RMSE data used for paired_rmse_by_seed figure:", flush=True)
+    print("Seed | NN mean RMSE (m) | PINN mean RMSE (m) | Reduction (%)", flush=True)
+    print("-----|------------------|--------------------|--------------", flush=True)
+    for r in paired_rows:
+        print(
+            f"{int(r['seed']):4d} | "
+            f"{r['nn_rmse_mean_4_6h_m']:.6f}         | "
+            f"{r['pinn_rmse_mean_4_6h_m']:.6f}           | "
+            f"{r['rmse_reduction_percent']:.2f}",
+            flush=True,
+        )
 
     fig, ax = plt.subplots(figsize=(7.0, 4.2), dpi=160)
     x = np.arange(2)
@@ -642,19 +669,34 @@ def plot_validation(out_dir: Path, rows: list[dict[str, float]]) -> None:
     ax.set_title("Multi-seed temporal extrapolation error")
     ax.grid(axis="y", alpha=0.25)
     fig.tight_layout()
-    fig.savefig(out_dir / "rmse_mean_sd.png")
+    fig.savefig(out_dir / "rmse_mean_sd.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(7.5, 4.6), dpi=160)
+    # Reviewer-requested paired figure. Each line connects NN and PINN results
+    # from the same random seed, using the mean RMSE over forecast hours 4-6.
+    fig, ax = plt.subplots(figsize=(7.5, 4.8), dpi=160)
     for i, seed in enumerate(seeds):
-        ax.plot([0, 1], [nn_rmse[i], pinn_rmse[i]], marker="o", color="#555555", alpha=0.7)
-        ax.text(1.03, pinn_rmse[i], str(seed), va="center", fontsize=7)
+        ax.plot([0, 1], [nn_rmse[i], pinn_rmse[i]], marker="o", color="#555555", alpha=0.75)
+        ax.text(1.025, pinn_rmse[i], str(seed), va="center", fontsize=8)
+
+    ax.scatter(np.zeros_like(nn_rmse), nn_rmse, s=28, zorder=3, label="NN")
+    ax.scatter(np.ones_like(pinn_rmse), pinn_rmse, s=28, zorder=3, label="PINN")
+    ax.set_xlim(-0.15, 1.20)
     ax.set_xticks([0, 1], ["NN", "PINN"])
-    ax.set_ylabel("Mean RMSE over 4-6 h (m)")
+    ax.set_ylabel("Mean RMSE over forecast hours 4-6 (m)")
     ax.set_title("Paired RMSE comparison by random seed")
     ax.grid(axis="y", alpha=0.25)
+    ax.text(
+        0.02,
+        0.02,
+        f"n = {len(seeds)} paired seeds",
+        transform=ax.transAxes,
+        fontsize=8,
+        va="bottom",
+    )
     fig.tight_layout()
-    fig.savefig(out_dir / "paired_rmse_by_seed.png")
+    fig.savefig(out_dir / "paired_rmse_by_seed.png", dpi=300, bbox_inches="tight")
+    fig.savefig(out_dir / "paired_rmse_by_seed.pdf", bbox_inches="tight")
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7.0, 4.2), dpi=160)
@@ -666,8 +708,11 @@ def plot_validation(out_dir: Path, rows: list[dict[str, float]]) -> None:
     ax.set_title("Multi-seed temporal extrapolation error")
     ax.grid(axis="y", alpha=0.25)
     fig.tight_layout()
-    fig.savefig(out_dir / "mae_mean_sd.png")
+    fig.savefig(out_dir / "mae_mean_sd.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
+
+    print(f"\nSaved reviewer figure: {out_dir / 'paired_rmse_by_seed.png'}", flush=True)
+    print(f"Saved source data: {out_dir / 'paired_rmse_by_seed_data.csv'}", flush=True)
 
 
 def sha256(path: Path) -> str:
@@ -681,7 +726,7 @@ def sha256(path: Path) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runs", type=int, default=10)
-    parser.add_argument("--first-seed", type=int, default=1001)
+    parser.add_argument("--first-seed", type=int, default=42)
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/revision_validation"))
     parser.add_argument("--nn-adam", type=int, default=1200)
     parser.add_argument("--nn-lbfgs", type=int, default=60)
